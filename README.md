@@ -55,6 +55,19 @@ duckdb/
 +-- README.md
 ```
 
+Proposito de cada directorio y archivo principal:
+
+- `data/raw/`: almacena los archivos Parquet originales descargados desde la TLC. No se versiona en Git.
+- `data/processed/`: almacena datos derivados o bases generadas durante el analisis. No se versiona en Git.
+- `notebooks/`: contiene notebooks para exploracion, analisis y visualizaciones.
+- `scripts/`: contiene scripts reproducibles, como la descarga de datos.
+- `sql/`: contiene consultas SQL documentadas para DuckDB.
+- `docs/`: contiene documentacion adicional del laboratorio, resultados y evidencias.
+- `Dockerfile`: define el ambiente Python/Jupyter para el analisis.
+- `metabase.Dockerfile`: define el ambiente de Metabase con el driver de DuckDB.
+- `docker-compose.yml`: levanta los servicios del laboratorio y monta las carpetas del proyecto.
+- `README.md`: documenta como reproducir el flujo de trabajo.
+
 ## Requisitos
 
 - Docker, con Docker Compose
@@ -119,11 +132,119 @@ generar los resultados principales.
 
 ## Como levantar el ambiente
 
-<!-- TODO (Ejercicio 1.5) -->
+Requisitos locales:
+
+- Docker Desktop o Docker Engine con Docker Compose.
+- Git.
+
+Procedimiento usado para preparar el repositorio:
+
+1. Se realizo un fork del repositorio base del docente.
+2. Se clono el fork localmente.
+3. Como el fork local estaba vacio, se agrego el remoto `upstream` y se trajo la plantilla base:
+
+   ```bash
+   git remote add upstream https://github.com/menene/duckdb.git
+   git fetch upstream
+   git merge upstream/main --allow-unrelated-histories
+   ```
+
+Para levantar el ambiente:
+
+```bash
+docker compose up -d --build
+```
+
+Servicios disponibles:
+
+- JupyterLab: <http://127.0.0.1:8888>
+- Metabase: <http://127.0.0.1:3000>
+
+Para verificar que los contenedores estan corriendo:
+
+```bash
+docker compose ps
+```
+
+Para detener el ambiente:
+
+```bash
+docker compose down
+```
+
+Herramientas disponibles dentro del ambiente:
+
+- Python 3.11.
+- DuckDB 1.5.5.
+- JupyterLab 4.6.4.
+- Pandas 3.0.6.
+- PyArrow 25.0.1.
+- Matplotlib 3.11.2.
+- Requests 2.34.2.
+- Metabase con driver de DuckDB.
+
+El uso de un ambiente reproducible es importante porque asegura que todas las personas del equipo, el docente y cualquier evaluador ejecuten el proyecto con las mismas versiones de Python, DuckDB y librerias. Esto reduce errores por diferencias entre computadoras, facilita repetir el analisis cuando ingresan nuevos archivos y permite validar los resultados de forma consistente.
 
 ## Como descargar los datos
 
-<!-- TODO (Ejercicios 2.6, 5.1 y 8.1) -->
+Fase 1: descarga inicial de datos 2026 para taxis amarillos (`yellow`) y verdes (`green`).
+
+El script usado es:
+
+```bash
+python scripts/download_data.py
+```
+
+Tambien puede descargarse un solo tipo de taxi:
+
+```bash
+python scripts/download_data.py --taxi yellow
+python scripts/download_data.py --taxi green
+```
+
+Los archivos se guardan en la estructura definida por el proyecto:
+
+```text
+data/raw/<tipo>/<anio>/<archivo>.parquet
+```
+
+Ejemplos:
+
+```text
+data/raw/yellow/2026/yellow_tripdata_2026-01.parquet
+data/raw/green/2026/green_tripdata_2026-01.parquet
+```
+
+El script verifica cada archivo mensual publicado por la TLC antes de descargarlo. Si el archivo ya existe localmente y tiene tamano mayor a cero, lo omite para evitar descargas repetidas. Las descargas se escriben primero como archivo temporal `.part` y solo se renombran a `.parquet` cuando terminan correctamente.
+
+Verificacion realizada para Fase 1:
+
+```bash
+python scripts/download_data.py
+```
+
+Resultado obtenido:
+
+- 16 archivos descargados.
+- 0 archivos fallidos.
+- 8 archivos no publicados por la TLC al momento de la ejecucion.
+- Meses descargados: enero a agosto de 2026 para `yellow` y `green`.
+- Meses no publicados: septiembre a diciembre de 2026 para `yellow` y `green`.
+
+Luego se ejecuto nuevamente el mismo comando para comprobar que no vuelve a descargar archivos existentes. Resultado de la segunda ejecucion:
+
+- 0 archivos descargados.
+- 16 archivos omitidos porque ya existian.
+- 8 archivos no publicados.
+- 0 archivos fallidos.
+
+Comando usado para listar los archivos locales descargados:
+
+```bash
+python -c "from pathlib import Path; files=sorted(Path('data/raw').glob('**/*.parquet')); print(len(files)); [print(f) for f in files]"
+```
+
+El conjunto descargado se considero completo para Fase 1 porque el script consulta los 12 meses de 2026 para ambos tipos de taxi y distingue entre archivos publicados, existentes, no publicados y fallidos. Al momento de la verificacion, la TLC solo tenia publicados enero-agosto de 2026 para ambos tipos, por lo que esos 16 archivos representan todos los archivos disponibles en la fuente original.
 
 ## Como ejecutar el analisis
 
