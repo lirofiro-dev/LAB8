@@ -4,8 +4,8 @@ Repositorio base del laboratorio 8 del curso **CC3084 - Data Science**
 (Universidad del Valle de Guatemala, Ciclo 2, 2026).
 
 Este es el repositorio **proporcionado por el docente**. Contiene la estructura
-del proyecto, el ambiente de ejecucion basado en Docker y un script que descarga
-los datos de **2026**. Todo lo demas debe ser construido por cada equipo.
+del proyecto, el ambiente de ejecucion basado en Docker y un script de descarga
+de datos. Todo lo demas debe ser construido por cada equipo.
 
 ## Trabajo con fork
 
@@ -82,9 +82,9 @@ base materializada del Ejercicio 6. Se recomienda tener al menos 10 GB libres.
 
 ## Datos
 
-El repositorio incluye `scripts/download_data.py`, que descarga los archivos de
-2026 publicados por la TLC (`--help` muestra las opciones disponibles). Los
-archivos se guardan en `data/raw/<tipo>/<anio>/`.
+El repositorio incluye `scripts/download_data.py`, que descarga los archivos
+publicados por la TLC (`--help` muestra las opciones disponibles). Los archivos
+se guardan en `data/raw/<tipo>/<anio>/`.
 
 La TLC publica cada mes con varias semanas de atraso, por lo que los ultimos
 meses de 2026 todavia no existen. El script consulta al servidor que meses estan
@@ -192,14 +192,14 @@ Fase 1: descarga inicial de datos 2026 para taxis amarillos (`yellow`) y verdes 
 El script usado es:
 
 ```bash
-python scripts/download_data.py
+python scripts/download_data.py --years 2026
 ```
 
 Tambien puede descargarse un solo tipo de taxi:
 
 ```bash
-python scripts/download_data.py --taxi yellow
-python scripts/download_data.py --taxi green
+python scripts/download_data.py --taxi yellow --years 2026
+python scripts/download_data.py --taxi green --years 2026
 ```
 
 Los archivos se guardan en la estructura definida por el proyecto:
@@ -220,7 +220,7 @@ El script verifica cada archivo mensual publicado por la TLC antes de descargarl
 Verificacion realizada para Fase 1:
 
 ```bash
-python scripts/download_data.py
+python scripts/download_data.py --years 2026
 ```
 
 Resultado obtenido:
@@ -246,17 +246,41 @@ python -c "from pathlib import Path; files=sorted(Path('data/raw').glob('**/*.pa
 
 El conjunto descargado se considero completo para Fase 1 porque el script consulta los 12 meses de 2026 para ambos tipos de taxi y distingue entre archivos publicados, existentes, no publicados y fallidos. Al momento de la verificacion, la TLC solo tenia publicados enero-agosto de 2026 para ambos tipos, por lo que esos 16 archivos representan todos los archivos disponibles en la fuente original.
 
+Ejercicio 5: incorporacion incremental de 2024.
+
+El script ahora acepta multiples anios mediante `--years`. Para descargar 2024 y conservar 2026:
+
+```bash
+python scripts/download_data.py --years 2024 2026
+```
+
+El valor por defecto actual equivale a descargar 2024 y 2026:
+
+```bash
+python scripts/download_data.py
+```
+
+Resultado de la descarga incremental del Ejercicio 5:
+
+- 24 archivos nuevos descargados para 2024.
+- 16 archivos de 2026 omitidos porque ya existian.
+- 8 archivos de 2026 no publicados por la TLC.
+- 0 archivos fallidos.
+- Total local despues de la incorporacion: 40 archivos Parquet.
+
+Una segunda ejecucion del mismo script confirmo que no se redescargan archivos existentes: 0 descargados, 40 omitidos, 8 no publicados y 0 fallidos.
+
 ## Como ejecutar el analisis
 
 Ejercicio 3: exploracion directa de archivos Parquet con DuckDB.
 
-Notebook de evidencia:
+Notebook de analisis:
 
 ```text
 notebooks/01_direct_parquet_exploration.ipynb
 ```
 
-Este notebook verifica los archivos descargados, ejecuta consultas directas sobre Parquet y guarda salidas con conteos, esquemas, muestras y revision inicial de calidad.
+Este notebook se actualiza con el avance del laboratorio. Actualmente verifica los archivos descargados, ejecuta consultas directas sobre Parquet, revisa calidad inicial e incluye la validacion de incorporacion de 2024.
 
 Archivo SQL:
 
@@ -296,6 +320,26 @@ Para validar que las consultas del Ejercicio 4 se ejecutan correctamente:
 
 ```bash
 docker compose exec lab python -c "import duckdb; from pathlib import Path; con=duckdb.connect(); con.execute(Path('/workspace/sql/exercise4_exploratory_analysis.sql').read_text()); print('SQL ejercicio 4 ejecutado correctamente')"
+```
+
+Ejercicio 5: incorporacion incremental de 2024.
+
+Archivo SQL:
+
+```text
+sql/exercise5_incremental_2024_validation.sql
+```
+
+Documentacion de validacion:
+
+```text
+docs/exercise5_incremental_2024.md
+```
+
+Para validar que DuckDB puede consultar 2024 y 2026 conjuntamente:
+
+```bash
+docker compose exec lab python -c "import duckdb; from pathlib import Path; con=duckdb.connect(); con.execute(Path('/workspace/sql/exercise5_incremental_2024_validation.sql').read_text()); print('SQL ejercicio 5 ejecutado correctamente')"
 ```
 
 ## Como reproducir los benchmarks
