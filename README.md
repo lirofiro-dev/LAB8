@@ -248,7 +248,27 @@ El conjunto descargado se considero completo para Fase 1 porque el script consul
 
 ## Como ejecutar el analisis
 
-<!-- TODO -->
+Ejercicio 3: exploracion directa de archivos Parquet con DuckDB.
+
+Archivo SQL:
+
+```text
+sql/exercise3_direct_parquet_exploration.sql
+```
+
+Documentacion de consultas y resultados:
+
+```text
+docs/exercise3_direct_parquet_exploration.md
+```
+
+Para validar que las consultas SQL se ejecutan correctamente dentro del ambiente Docker:
+
+```bash
+docker compose exec lab python -c "import duckdb; from pathlib import Path; con=duckdb.connect(); con.execute(Path('/workspace/sql/exercise3_direct_parquet_exploration.sql').read_text()); print('SQL ejecutado correctamente')"
+```
+
+Para trabajar interactivamente con los resultados, abra JupyterLab en <http://127.0.0.1:8888> y ejecute las consultas del archivo SQL una por una desde Python/DuckDB.
 
 ## Como reproducir los benchmarks
 
