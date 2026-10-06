@@ -250,6 +250,14 @@ El conjunto descargado se considero completo para Fase 1 porque el script consul
 
 Ejercicio 3: exploracion directa de archivos Parquet con DuckDB.
 
+Notebook de evidencia:
+
+```text
+notebooks/01_direct_parquet_exploration.ipynb
+```
+
+Este notebook verifica los archivos descargados, ejecuta consultas directas sobre Parquet y guarda salidas con conteos, esquemas, muestras y revision inicial de calidad.
+
 Archivo SQL:
 
 ```text
@@ -269,6 +277,26 @@ docker compose exec lab python -c "import duckdb; from pathlib import Path; con=
 ```
 
 Para trabajar interactivamente con los resultados, abra JupyterLab en <http://127.0.0.1:8888> y ejecute las consultas del archivo SQL una por una desde Python/DuckDB.
+
+Ejercicio 4: analisis exploratorio con DuckDB.
+
+Archivo SQL:
+
+```text
+sql/exercise4_exploratory_analysis.sql
+```
+
+Documentacion de preguntas, resultados y hallazgos:
+
+```text
+docs/exercise4_exploratory_analysis.md
+```
+
+Para validar que las consultas del Ejercicio 4 se ejecutan correctamente:
+
+```bash
+docker compose exec lab python -c "import duckdb; from pathlib import Path; con=duckdb.connect(); con.execute(Path('/workspace/sql/exercise4_exploratory_analysis.sql').read_text()); print('SQL ejercicio 4 ejecutado correctamente')"
+```
 
 ## Como reproducir los benchmarks
 
