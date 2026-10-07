@@ -157,7 +157,7 @@ docker compose up -d --build
 
 Servicios disponibles:
 
-- JupyterLab: <http://127.0.0.1:8888>
+- JupyterLab: <http://127.0.0.1:8889>
 - Metabase: <http://127.0.0.1:3000>
 
 Para verificar que los contenedores estan corriendo:
@@ -300,7 +300,7 @@ Para validar que las consultas SQL se ejecutan correctamente dentro del ambiente
 docker compose exec lab python -c "import duckdb; from pathlib import Path; con=duckdb.connect(); con.execute(Path('/workspace/sql/exercise3_direct_parquet_exploration.sql').read_text()); print('SQL ejecutado correctamente')"
 ```
 
-Para trabajar interactivamente con los resultados, abra JupyterLab en <http://127.0.0.1:8888> y ejecute las consultas del archivo SQL una por una desde Python/DuckDB.
+Para trabajar interactivamente con los resultados, abra JupyterLab en <http://127.0.0.1:8889> y ejecute las consultas del archivo SQL una por una desde Python/DuckDB.
 
 Ejercicio 4: analisis exploratorio con DuckDB.
 
@@ -344,7 +344,53 @@ docker compose exec lab python -c "import duckdb; from pathlib import Path; con=
 
 ## Como reproducir los benchmarks
 
-<!-- TODO (Ejercicio 6) -->
+Ejercicio 6: comparacion entre consultas directas sobre Parquet y una tabla
+materializada en DuckDB.
+
+Script reproducible:
+
+```text
+scripts/benchmark_parquet_vs_duckdb.py
+```
+
+Archivo SQL documentado:
+
+```text
+sql/exercise6_benchmark.sql
+```
+
+Documentacion del benchmark:
+
+```text
+docs/exercise6_benchmark.md
+```
+
+Para ejecutar el benchmark dentro del ambiente Docker:
+
+```bash
+docker compose exec lab python scripts/benchmark_parquet_vs_duckdb.py --force-materialize
+```
+
+El script crea la base materializada:
+
+```text
+data/processed/lab8.duckdb
+```
+
+Tambien genera los resultados en:
+
+```text
+docs/exercise6_benchmark_results.md
+data/processed/exercise6_benchmark_results.csv
+```
+
+La comparacion usa las mismas consultas sobre dos estrategias:
+
+- lectura directa con `read_parquet`;
+- consulta sobre la tabla materializada `trips`.
+
+El benchmark se ejecuta con diferentes cantidades de datos: primer mes disponible,
+primeros cuatro meses disponibles y todos los meses disponibles por anio.
 
 ## Como generar los resultados principales
 
