@@ -17,7 +17,7 @@ python scripts/download_data.py --years 2024 2026
 python scripts/download_data.py --taxi yellow --years 2024
 ```
 
-El valor por defecto actual descarga `2024` y `2026` para taxis `yellow` y `green`. El script conserva el comportamiento incremental: si un archivo ya existe localmente y tiene tamano mayor a cero, no se descarga de nuevo.
+El valor por defecto final del laboratorio descarga `2024`, `2025` y `2026` para taxis `yellow` y `green`. Para reproducir solamente este ejercicio puede usarse `--years 2024 2026`. El script conserva el comportamiento incremental: si un archivo ya existe localmente y tiene tamano mayor a cero, no se descarga de nuevo.
 
 ## Resultado de la descarga incremental
 

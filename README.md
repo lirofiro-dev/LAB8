@@ -246,7 +246,7 @@ python -c "from pathlib import Path; files=sorted(Path('data/raw').glob('**/*.pa
 
 El conjunto descargado se considero completo para Fase 1 porque el script consulta los 12 meses de 2026 para ambos tipos de taxi y distingue entre archivos publicados, existentes, no publicados y fallidos. Al momento de la verificacion, la TLC solo tenia publicados enero-agosto de 2026 para ambos tipos, por lo que esos 16 archivos representan todos los archivos disponibles en la fuente original.
 
-Ejercicio 5: incorporacion incremental de 2024.
+Ejercicio 5: incorporacion incremental de 2024 y ampliacion posterior a 2025.
 
 El script ahora acepta multiples anios mediante `--years`. Para descargar 2024 y conservar 2026:
 
@@ -254,10 +254,18 @@ El script ahora acepta multiples anios mediante `--years`. Para descargar 2024 y
 python scripts/download_data.py --years 2024 2026
 ```
 
-El valor por defecto actual equivale a descargar 2024 y 2026:
+El valor por defecto actual equivale a descargar 2024, 2025 y 2026:
 
 ```bash
 python scripts/download_data.py
+```
+
+Ejercicio 8: incorporacion de 2025.
+
+Para trabajar con los tres anios requeridos en la entrega final:
+
+```bash
+python scripts/download_data.py --years 2024 2025 2026
 ```
 
 Resultado de la descarga incremental del Ejercicio 5:
@@ -342,6 +350,27 @@ Para validar que DuckDB puede consultar 2024 y 2026 conjuntamente:
 docker compose exec lab python -c "import duckdb; from pathlib import Path; con=duckdb.connect(); con.execute(Path('/workspace/sql/exercise5_incremental_2024_validation.sql').read_text()); print('SQL ejercicio 5 ejecutado correctamente')"
 ```
 
+Ejercicio 8: incorporacion de 2025 y analisis completo 2024-2026.
+
+Archivo SQL:
+
+```text
+sql/exercise8_full_2024_2025_2026_analysis.sql
+```
+
+Documentacion:
+
+```text
+docs/exercise8_full_analysis.md
+docs/exercise8_results.md
+```
+
+Para validar el analisis conjunto de 2024, 2025 y 2026:
+
+```bash
+docker compose exec lab python -c "import duckdb; from pathlib import Path; con=duckdb.connect(); con.execute(Path('/workspace/sql/exercise8_full_2024_2025_2026_analysis.sql').read_text()); print('SQL ejercicio 8 ejecutado correctamente')"
+```
+
 ## Como reproducir los benchmarks
 
 Ejercicio 6: comparacion entre consultas directas sobre Parquet y una tabla
@@ -413,6 +442,9 @@ Para generar los indicadores, tablas derivadas y figuras:
 ```bash
 docker compose exec lab python scripts/generate_indicators.py
 ```
+
+Despues de incorporar 2025, vuelva a ejecutar ese comando para actualizar las
+visualizaciones a los tres anios disponibles.
 
 El script genera:
 

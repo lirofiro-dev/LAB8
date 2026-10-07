@@ -8,11 +8,11 @@ Fuente oficial de los datos:
     https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 
 Uso:
-    python scripts/download_data.py                 # 2024 y 2026, amarillos y verdes
+    python scripts/download_data.py                 # 2024, 2025 y 2026, amarillos y verdes
     python scripts/download_data.py --taxi yellow
     python scripts/download_data.py --taxi green
     python scripts/download_data.py --years 2026
-    python scripts/download_data.py --years 2024 2026
+    python scripts/download_data.py --years 2024 2025 2026
 
 Los archivos se guardan en:
     data/raw/<tipo>/<anio>/<nombre-original>.parquet
@@ -32,7 +32,7 @@ from pathlib import Path
 
 import requests
 
-ANIOS = (2024, 2026)
+ANIOS = (2024, 2025, 2026)
 TIPOS_TAXI = ("yellow", "green")
 URL_BASE = "https://d37ci6vzurychx.cloudfront.net/trip-data"
 DIR_DESTINO = Path("data/raw")
@@ -147,7 +147,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--years", nargs="+", type=int, default=list(ANIOS),
-        help="anios a descargar (por defecto: 2024 2026)",
+        help="anios a descargar (por defecto: 2024 2025 2026)",
     )
     argumentos = parser.parse_args()
 
