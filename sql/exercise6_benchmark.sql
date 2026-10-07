@@ -6,6 +6,9 @@
 --
 -- Las consultas usan una estructura normalizada con columnas comunes entre
 -- taxis amarillos y verdes.
+--
+-- Ejecutar sobre una base en archivo (duckdb.connect('/workspace/data/processed/lab8.duckdb')),
+-- no en memoria: con 2024-2026 la tabla tiene ~120 M filas y en memoria excede la RAM del contenedor.
 
 -- 6.2 Crear tabla materializada desde los Parquet disponibles.
 -- Esta version muestra el patron general; el script genera dinamicamente las

@@ -221,7 +221,7 @@ def time_query(con: duckdb.DuckDBPyConnection, query: str, repeats: int) -> tupl
     return statistics.median(times), row_count
 
 
-def run_benchmark(repeats: int, force_materialize: bool) -> list[dict[str, object]]:
+def run_benchmark(repeats: int, force_materialize: bool, memory_limit: str) -> list[dict[str, object]]:
     files = discover_files()
     if not files:
         raise SystemExit("No hay archivos Parquet. Ejecute primero scripts/download_data.py")
@@ -234,6 +234,10 @@ def run_benchmark(repeats: int, force_materialize: bool) -> list[dict[str, objec
         print(f"  {key[0]} {key[1]}: {count} archivos")
 
     con = duckdb.connect(str(DB_PATH))
+    # Con 2024-2026 (~120 M filas) el limite por defecto (80% de la RAM) deja sin memoria al
+    # contenedor al leer Parquet; un limite menor obliga a DuckDB a usar disco temporal.
+    con.execute(f"SET memory_limit = '{memory_limit}'")
+    con.execute("SET enable_progress_bar = false")
     materialize_table(con, files, force_materialize)
 
     results: list[dict[str, object]] = []
@@ -313,6 +317,7 @@ def write_outputs(results: list[dict[str, object]]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Benchmark Parquet vs tabla DuckDB")
     parser.add_argument("--repeats", type=int, default=3, help="repeticiones por consulta")
+    parser.add_argument("--memory-limit", default="4GB", help="memory_limit de DuckDB (default 4GB)")
     parser.add_argument(
         "--force-materialize",
         action="store_true",
@@ -320,7 +325,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    results = run_benchmark(args.repeats, args.force_materialize)
+    results = run_benchmark(args.repeats, args.force_materialize, args.memory_limit)
     write_outputs(results)
     return 0
 
