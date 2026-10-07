@@ -463,9 +463,15 @@ La documentacion del tablero esta en:
 docs/exercise7_dashboard.md
 ```
 
-Metabase puede usarse en <http://127.0.0.1:3000> para recrear el tablero con
-las consultas de `sql/exercise7_indicators.sql`. Las imagenes en `docs/figures/`
-quedan como evidencia reproducible de las visualizaciones generadas desde DuckDB.
+Tablero en Metabase (requiere haber ejecutado el benchmark, que crea `data/processed/lab8.duckdb`):
+
+```bash
+docker compose exec lab python scripts/setup_metabase.py
+```
+
+Crea el tablero `Lab 8 - Indicadores TLC` en <http://127.0.0.1:3000> (usuario local
+`lab8@example.com` / `Lab8-DuckDB-2026`). Capturas en `docs/figures/metabase_dashboard_*.png`;
+detalle en `docs/exercise7_dashboard.md`.
 
 ## Flujo completo de reproduccion
 
@@ -474,6 +480,7 @@ docker compose up -d --build
 docker compose exec lab python scripts/download_data.py --years 2024 2025 2026
 docker compose exec lab python scripts/benchmark_parquet_vs_duckdb.py --force-materialize
 docker compose exec lab python scripts/generate_indicators.py
+docker compose exec lab python scripts/setup_metabase.py
 ```
 
 Las consultas de `sql/` pueden ejecutarse despues con los comandos de validacion de cada ejercicio.
