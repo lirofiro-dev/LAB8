@@ -8,6 +8,12 @@ Este ejercicio amplia el flujo para trabajar con taxis amarillos y verdes de 202
 - Las rutas siguen la estructura `data/raw/<tipo>/<anio>/`.
 - El script conserva el comportamiento incremental: si un archivo existe localmente y tiene tamano mayor que cero, no se descarga nuevamente.
 - Las consultas usan patrones `**/*.parquet` para incorporar automaticamente nuevos anios.
+- Unico cambio necesario en consultas previas: `sql/exercise5_incremental_2024_validation.sql`
+  extraia el anio con `regexp_extract(filename, '/(2024|2026)/', 1)`. Con 2025 presente, esa
+  expresion devolvia `''` para los archivos de 2025 y la conversion a `INTEGER` fallaba. Se
+  reemplazo por el patron generico `'/(\d{4})/'`, el mismo que usan los ejercicios 6, 7 y 8, y la
+  consulta conserva su filtro `file_year IN (2024, 2026)` porque valida especificamente esos anios.
+  Las consultas de los ejercicios 3, 4, 7 y 8 se ejecutaron sobre los tres anios sin cambios.
 
 ## Comando de descarga
 

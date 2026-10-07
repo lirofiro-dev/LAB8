@@ -37,6 +37,8 @@ Total local: **64 archivos Parquet**.
 | yellow | 2025 | 48722573 | 26.91 | 18.35 | -3.32 |
 | yellow | 2026 | 29703338 | 30.07 | -39.04 | 11.75 |
 
+> Nota: los conteos de `trips` difieren levemente entre tablas porque usan filtros distintos. "Archivos incorporados" cuenta todas las filas; "Indicadores anuales" exige `YEAR(pickup_datetime) = file_year` y `duration_minutes >= 0`; "Cambios porcentuales" solo exige `YEAR(pickup_datetime) = file_year`. La diferencia corresponde a registros con fechas fuera del anio del archivo o duraciones negativas.
+
 ## Horas principales de actividad
 
 | taxi_type | file_year | pickup_hour | trips |
