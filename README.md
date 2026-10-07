@@ -463,3 +463,31 @@ docs/exercise7_dashboard.md
 Metabase puede usarse en <http://127.0.0.1:3000> para recrear el tablero con
 las consultas de `sql/exercise7_indicators.sql`. Las imagenes en `docs/figures/`
 quedan como evidencia reproducible de las visualizaciones generadas desde DuckDB.
+
+## Flujo completo de reproduccion
+
+```bash
+docker compose up -d --build
+docker compose exec lab python scripts/download_data.py --years 2024 2025 2026
+docker compose exec lab python scripts/benchmark_parquet_vs_duckdb.py --force-materialize
+docker compose exec lab python scripts/generate_indicators.py
+```
+
+Las consultas de `sql/` pueden ejecutarse despues con los comandos de validacion de cada ejercicio.
+
+## Resumen de hallazgos
+
+- Yellow concentra mas del 98% de los viajes; yellow y green deben analizarse por separado.
+- Yellow crece de 41.2 M (2024) a 48.7 M (2025) viajes validos; green baja de 660 mil a 591 mil.
+  2026 solo tiene enero-agosto publicados y no es comparable como anio completo.
+- El monto promedio por viaje sube en ambos servicios entre 2024 y 2026 (yellow 27.83 a 30.07, green 24.26 a 25.49).
+- La actividad maxima se mantiene entre 16:00 y 19:00 en los tres anios.
+- Distancias cero y montos negativos aparecen en todos los anios, por lo que los indicadores incluyen metricas de calidad.
+- En el benchmark, la lectura directa de Parquet fue mas rapida en la mayoria de consultas; la tabla materializada
+  solo gano en la consulta con medianas. Ver `docs/exercise6_benchmark.md`.
+
+Detalle: `docs/exercise4_exploratory_analysis.md`, `docs/exercise7_dashboard_results.md` y `docs/exercise8_results.md`.
+
+## Discusion (Ejercicio 9)
+
+Las respuestas a las preguntas de reflexion 9.1-9.8 estan en `docs/exercise9_discussion.md`.
