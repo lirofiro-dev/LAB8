@@ -4,12 +4,12 @@
 -- 5.5 Verificar archivos disponibles por tipo de taxi y anio del directorio.
 WITH files AS (
     SELECT 'yellow' AS taxi_type,
-           regexp_extract(filename, '/(2024|2026)/', 1)::INTEGER AS file_year,
+           regexp_extract(filename, '/(\d{4})/', 1)::INTEGER AS file_year,
            filename
     FROM read_parquet('/workspace/data/raw/yellow/**/*.parquet', filename = true, union_by_name = true)
     UNION ALL
     SELECT 'green' AS taxi_type,
-           regexp_extract(filename, '/(2024|2026)/', 1)::INTEGER AS file_year,
+           regexp_extract(filename, '/(\d{4})/', 1)::INTEGER AS file_year,
            filename
     FROM read_parquet('/workspace/data/raw/green/**/*.parquet', filename = true, union_by_name = true)
 )
@@ -25,14 +25,14 @@ ORDER BY taxi_type, file_year;
 -- 5.6 Consultar conjuntamente 2024 y 2026 con una estructura normalizada.
 WITH trips AS (
     SELECT 'yellow' AS taxi_type,
-           regexp_extract(filename, '/(2024|2026)/', 1)::INTEGER AS file_year,
+           regexp_extract(filename, '/(\d{4})/', 1)::INTEGER AS file_year,
            tpep_pickup_datetime AS pickup_datetime,
            trip_distance,
            total_amount
     FROM read_parquet('/workspace/data/raw/yellow/**/*.parquet', filename = true, union_by_name = true)
     UNION ALL
     SELECT 'green' AS taxi_type,
-           regexp_extract(filename, '/(2024|2026)/', 1)::INTEGER AS file_year,
+           regexp_extract(filename, '/(\d{4})/', 1)::INTEGER AS file_year,
            lpep_pickup_datetime AS pickup_datetime,
            trip_distance,
            total_amount
@@ -53,12 +53,12 @@ ORDER BY taxi_type, file_year, pickup_year;
 -- 5.7 Validar si existen registros cuyo anio de pickup no coincide con el anio del archivo.
 WITH trips AS (
     SELECT 'yellow' AS taxi_type,
-           regexp_extract(filename, '/(2024|2026)/', 1)::INTEGER AS file_year,
+           regexp_extract(filename, '/(\d{4})/', 1)::INTEGER AS file_year,
            tpep_pickup_datetime AS pickup_datetime
     FROM read_parquet('/workspace/data/raw/yellow/**/*.parquet', filename = true, union_by_name = true)
     UNION ALL
     SELECT 'green' AS taxi_type,
-           regexp_extract(filename, '/(2024|2026)/', 1)::INTEGER AS file_year,
+           regexp_extract(filename, '/(\d{4})/', 1)::INTEGER AS file_year,
            lpep_pickup_datetime AS pickup_datetime
     FROM read_parquet('/workspace/data/raw/green/**/*.parquet', filename = true, union_by_name = true)
 )
@@ -75,13 +75,13 @@ ORDER BY taxi_type, file_year, pickup_year;
 -- 5.8 Comparacion mensual conjunta para confirmar que las consultas anteriores pueden ampliarse.
 WITH trips AS (
     SELECT 'yellow' AS taxi_type,
-           regexp_extract(filename, '/(2024|2026)/', 1)::INTEGER AS file_year,
+           regexp_extract(filename, '/(\d{4})/', 1)::INTEGER AS file_year,
            tpep_pickup_datetime AS pickup_datetime,
            total_amount
     FROM read_parquet('/workspace/data/raw/yellow/**/*.parquet', filename = true, union_by_name = true)
     UNION ALL
     SELECT 'green' AS taxi_type,
-           regexp_extract(filename, '/(2024|2026)/', 1)::INTEGER AS file_year,
+           regexp_extract(filename, '/(\d{4})/', 1)::INTEGER AS file_year,
            lpep_pickup_datetime AS pickup_datetime,
            total_amount
     FROM read_parquet('/workspace/data/raw/green/**/*.parquet', filename = true, union_by_name = true)
