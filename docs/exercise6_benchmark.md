@@ -45,6 +45,9 @@ Desde el contenedor del laboratorio:
 docker compose exec lab python scripts/benchmark_parquet_vs_duckdb.py --force-materialize
 ```
 
+`--force-materialize` recrea la tabla `trips`; si ya existe y no han llegado archivos nuevos puede
+omitirse. `--memory-limit` (por defecto `4GB`) ajusta la memoria que DuckDB puede usar.
+
 Para repetir cada consulta mas veces:
 
 ```bash
@@ -64,48 +67,58 @@ un paso de preparacion cada vez que cambia el conjunto de archivos.
 
 ## Resultado observado con los datos disponibles
 
-El benchmark fue ejecutado con los datos descargados localmente al momento de la prueba:
+El benchmark final se ejecuto con los tres anios descargados (tabla `trips` de 121,184,384 filas,
+archivo `lab8.duckdb` de ~5.6 GB, `memory_limit = 4GB`, 3 repeticiones, mediana):
 
-- `yellow` 2026: 8 archivos.
-- `green` 2026: 8 archivos.
-- Total evaluado: 16 archivos y 30,040,469 filas.
+- `yellow` y `green` 2024: 12 archivos cada uno.
+- `yellow` y `green` 2025: 12 archivos cada uno.
+- `yellow` y `green` 2026: 8 archivos cada uno (enero-agosto).
+- Total evaluado: 64 archivos.
 
-Los resultados completos estan en `docs/exercise6_benchmark_results.md`.
+Los niveles toman los primeros N meses de cada anio: 1 mes (6 archivos), 4 meses (24 archivos) y
+todos los meses disponibles (64 archivos). Los resultados completos estan en
+`docs/exercise6_benchmark_results.md`.
 
-Resumen de tiempos medianos observados:
-
-| nivel | filas | consulta | Parquet directo | tabla DuckDB |
-|---|---:|---|---:|---:|
-| 1 mes | 3,765,161 | monthly_volume | 0.1145 s | 0.6598 s |
-| 1 mes | 3,765,161 | trip_statistics | 0.2859 s | 0.2802 s |
-| 1 mes | 3,765,161 | payment_distribution | 0.0700 s | 1.4035 s |
-| 1 mes | 3,765,161 | outlier_counts | 0.1078 s | 0.4123 s |
-| 4 meses | 15,074,537 | monthly_volume | 0.2594 s | 0.9038 s |
-| 4 meses | 15,074,537 | trip_statistics | 1.1873 s | 1.1449 s |
-| 4 meses | 15,074,537 | payment_distribution | 0.1637 s | 0.7391 s |
-| 4 meses | 15,074,537 | outlier_counts | 0.2489 s | 0.8011 s |
-| 8 meses | 30,040,469 | monthly_volume | 0.5003 s | 0.6576 s |
-| 8 meses | 30,040,469 | trip_statistics | 2.4989 s | 2.2031 s |
-| 8 meses | 30,040,469 | payment_distribution | 0.2989 s | 0.7596 s |
-| 8 meses | 30,040,469 | outlier_counts | 0.4863 s | 0.9125 s |
+| nivel | filas | consulta | Parquet directo | tabla DuckDB | mas rapido |
+|---|---:|---|---:|---:|---|
+| 1 mes | 10,309,888 | monthly_volume | 0.754 s | 2.557 s | Parquet |
+| 1 mes | 10,309,888 | trip_statistics | 1.544 s | 2.018 s | Parquet |
+| 1 mes | 10,309,888 | payment_distribution | 0.638 s | 2.085 s | Parquet |
+| 1 mes | 10,309,888 | outlier_counts | 0.757 s | 2.758 s | Parquet |
+| 4 meses | 43,734,857 | monthly_volume | 3.207 s | 4.300 s | Parquet |
+| 4 meses | 43,734,857 | trip_statistics | 9.130 s | 4.230 s | tabla |
+| 4 meses | 43,734,857 | payment_distribution | 2.330 s | 2.627 s | Parquet |
+| 4 meses | 43,734,857 | outlier_counts | 4.032 s | 3.104 s | tabla |
+| todos | 121,184,384 | monthly_volume | 6.672 s | 6.466 s | tabla |
+| todos | 121,184,384 | trip_statistics | 34.119 s | 9.976 s | tabla |
+| todos | 121,184,384 | payment_distribution | 4.573 s | 3.285 s | tabla |
+| todos | 121,184,384 | outlier_counts | 7.470 s | 5.589 s | tabla |
 
 ## Analisis de diferencias observadas
 
-En esta ejecucion, la lectura directa desde Parquet fue mas rapida en la mayoria de consultas.
-Esto es razonable porque las consultas usan pocas columnas y Parquet permite lectura columnar:
-DuckDB no necesita leer todo el archivo, sino principalmente las columnas involucradas en cada
-agregacion. Ademas, los archivos Parquet ya estan particionados por tipo de taxi, anio y mes en
-el sistema de archivos.
+**Con poco volumen gana Parquet directo.** Con un mes por anio, la lectura directa fue entre 1.3 y
+3.4 veces mas rapida en las cuatro consultas. La tabla se consulta filtrando `source_file IN (...)`
+sobre los 121 M de filas almacenadas, por lo que paga un costo de recorrer y filtrar la tabla
+completa que no compensa cuando se necesita una fraccion pequena. Parquet, en cambio, solo abre los
+6 archivos involucrados y lee unicamente las columnas usadas.
 
-La tabla materializada tuvo mejor resultado en `trip_statistics` para 1, 4 y 8 meses. Esa consulta
-calcula medianas y varias agregaciones sobre columnas normalizadas; al estar los datos ya unidos
-en una tabla comun, se evita parte del costo de construir la union normalizada desde Parquet en
-cada ejecucion.
+**Al crecer el volumen la ventaja se invierte.** Con 4 meses los resultados son mixtos y con todos
+los meses la tabla materializada gana en las cuatro consultas. Ese costo fijo del filtro pierde peso
+y domina el costo de leer, descomprimir y normalizar (`tpep_*`/`lpep_*`) los Parquet en cada
+ejecucion.
 
-Tambien se observa que al aumentar el volumen de datos los tiempos crecen, pero no de forma
-identica para todas las consultas. Las consultas de conteos y promedios sobre pocas columnas
-escalan muy bien desde Parquet. Las consultas con medianas son mas costosas porque requieren
-mas trabajo de agregacion.
+**Las consultas pesadas son las mas sensibles.** `trip_statistics` calcula medianas y varias
+agregaciones; sobre todos los datos tardo 34.1 s desde Parquet y 10.0 s desde la tabla (3.4 veces
+mas rapido). En consultas de conteo sobre pocas columnas (`monthly_volume`) la diferencia es minima
+(6.7 s vs 6.5 s), porque Parquet ya lee solo las columnas necesarias.
+
+**Costo de materializar.** La tabla ocupa ~5.6 GB adicionales y tarda varios minutos en crearse. Con
+el limite de memoria por defecto, la lectura directa de 121 M de filas agoto la RAM del contenedor,
+por lo que el script fija `--memory-limit 4GB` para que DuckDB use disco temporal.
+
+**Comparacion con la primera ejecucion (solo 2026, 30 M de filas).** En esa corrida Parquet directo
+gano en casi todas las consultas en todos los niveles. La conclusion depende del volumen: lo que es
+cierto con un anio deja de serlo con tres.
 
 ## Escenarios recomendados
 

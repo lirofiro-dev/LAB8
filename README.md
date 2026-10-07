@@ -400,6 +400,9 @@ Para ejecutar el benchmark dentro del ambiente Docker:
 docker compose exec lab python scripts/benchmark_parquet_vs_duckdb.py --force-materialize
 ```
 
+Con los tres anios el benchmark tarda ~10 minutos y usa `--memory-limit 4GB` por defecto para no agotar la
+RAM del contenedor.
+
 El script crea la base materializada:
 
 ```text
@@ -483,8 +486,8 @@ Las consultas de `sql/` pueden ejecutarse despues con los comandos de validacion
 - El monto promedio por viaje sube en ambos servicios entre 2024 y 2026 (yellow 27.83 a 30.07, green 24.26 a 25.49).
 - La actividad maxima se mantiene entre 16:00 y 19:00 en los tres anios.
 - Distancias cero y montos negativos aparecen en todos los anios, por lo que los indicadores incluyen metricas de calidad.
-- En el benchmark, la lectura directa de Parquet fue mas rapida en la mayoria de consultas; la tabla materializada
-  solo gano en la consulta con medianas. Ver `docs/exercise6_benchmark.md`.
+- En el benchmark, la lectura directa de Parquet gano con poco volumen (1 mes por anio); con los 121 M de filas
+  la tabla materializada gano las cuatro consultas, hasta 3.4 veces en la de medianas. Ver `docs/exercise6_benchmark.md`.
 
 Detalle: `docs/exercise4_exploratory_analysis.md`, `docs/exercise7_dashboard_results.md` y `docs/exercise8_results.md`.
 
