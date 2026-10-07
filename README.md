@@ -394,4 +394,40 @@ primeros cuatro meses disponibles y todos los meses disponibles por anio.
 
 ## Como generar los resultados principales
 
-<!-- TODO -->
+Ejercicio 7: indicadores y visualizaciones.
+
+Consultas SQL:
+
+```text
+sql/exercise7_indicators.sql
+```
+
+Script generador:
+
+```text
+scripts/generate_indicators.py
+```
+
+Para generar los indicadores, tablas derivadas y figuras:
+
+```bash
+docker compose exec lab python scripts/generate_indicators.py
+```
+
+El script genera:
+
+```text
+docs/exercise7_dashboard_results.md
+docs/figures/exercise7_*.png
+data/processed/indicators/*.csv
+```
+
+La documentacion del tablero esta en:
+
+```text
+docs/exercise7_dashboard.md
+```
+
+Metabase puede usarse en <http://127.0.0.1:3000> para recrear el tablero con
+las consultas de `sql/exercise7_indicators.sql`. Las imagenes en `docs/figures/`
+quedan como evidencia reproducible de las visualizaciones generadas desde DuckDB.
